@@ -1,0 +1,17 @@
+unmanaged implementation in class zbp_i_test_002 unique;
+strict ( 2 );
+
+define behavior for ZI_TEST_002 alias Test
+//late numbering
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create;
+  update;
+  delete;
+
+  action test;
+
+  field ( readonly ) ID;
+}

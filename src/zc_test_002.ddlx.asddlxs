@@ -1,0 +1,36 @@
+@Metadata.layer: #CORE
+@UI: {
+    headerInfo: { typeName: 'Test',
+                  typeNamePlural: 'Test',
+                  title: { type: #STANDARD, label: 'Test', value: 'ID' } },
+    presentationVariant: [{ sortOrder: [{ by: 'ID', direction: #ASC }] }] }
+//@Search.searchable: true
+annotate entity ZC_TEST_002 with 
+{
+
+    @UI.facet: [
+        {
+            id:            'Test',
+            purpose:       #STANDARD,
+            type:          #IDENTIFICATION_REFERENCE,
+            label:         'Test',
+            position:      10
+        }
+    ]
+
+    @UI.lineItem:         [ { position: 10, label: 'ID' } ]
+    @UI.identification:   [ { position: 10, label: 'ID' },
+                            { type: #FOR_ACTION, dataAction: 'test',  label: 'Test', position: 1 } ]
+    @EndUserText.label: 'Test ID'
+    @EndUserText.quickInfo: 'Test ID'
+    ID;
+
+    @UI.lineItem:         [ { position: 20, label: 'Data' } ]
+    @UI.identification:   [ { position: 20, label: 'Data' } ]
+    Data;    
+
+    @UI.lineItem:         [ { position: 30, label: 'Country' } ]
+    @UI.identification:   [ { position: 30, label: 'Country' } ]
+    Country;    
+
+}

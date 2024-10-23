@@ -1,0 +1,32 @@
+managed implementation in class ZBP_R_TEST004000 unique;
+strict ( 2 );
+define behavior for ZR_TEST004000
+persistent table ztest004
+etag master LocalLastChanged
+lock master
+authorization master( global )
+
+{
+  field ( mandatory : create )
+   ID;
+
+  field ( readonly )
+   LastChanged,
+   LocalLastChanged;
+
+  field ( readonly : update )
+   ID;
+
+
+  create;
+  update;
+  delete;
+
+  mapping for ZTEST004
+  {
+    ID = id;
+    Data = data;
+    LocalLastChanged = local_last_changed;
+    LastChanged = last_changed;
+  }
+}

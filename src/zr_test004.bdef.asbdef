@@ -1,0 +1,40 @@
+managed implementation in class ZBP_R_TEST004 unique;
+strict ( 2 );
+with draft;
+define behavior for ZR_TEST004
+persistent table ztest004
+draft table ZTEST004000_D
+etag master LocalLastChanged
+lock master total etag LastChanged
+authorization master( global )
+
+{
+  field ( mandatory : create )
+   ID;
+
+  field ( readonly )
+   LastChanged,
+   LocalLastChanged;
+
+  field ( readonly : update )
+   ID;
+
+
+  create;
+  update;
+  delete;
+
+  draft action Edit;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Resume;
+  draft determine action Prepare;
+
+  mapping for ZTEST004
+  {
+    ID = id;
+    Data = data;
+    LocalLastChanged = local_last_changed;
+    LastChanged = last_changed;
+  }
+}

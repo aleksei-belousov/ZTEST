@@ -1,0 +1,5 @@
+@ObjectModel.leadingEntity.name: 'ZI_Ztest004_S'
+define service ZUI_ZTEST004 {
+  expose ZI_ZTEST004_S as Ztest004All;
+  expose ZI_ZTEST004 as Ztest004;
+}

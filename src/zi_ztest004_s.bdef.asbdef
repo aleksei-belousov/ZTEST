@@ -1,0 +1,68 @@
+managed with additional save implementation in class ZBP_I_ZTEST004_S unique;
+strict;
+with draft;
+define behavior for ZI_Ztest004_S alias Ztest004All
+draft table ZTEST004_D_S
+with unmanaged save
+lock master total etag LastChangedAtMax
+authorization master( global )
+
+{
+  field ( readonly )
+   SingletonID;
+
+  field ( notrigger )
+   SingletonID,
+   HideTransport,
+   LastChangedAtMax;
+
+
+  update;
+  internal create;
+  internal delete;
+
+  draft action ( features : instance ) Edit;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Resume;
+  draft determine action Prepare;
+  action ( features : instance ) SelectCustomizingTransptReq parameter D_SelectCustomizingTransptReqP result [1] $self;
+
+  association _Ztest004 { create ( features : instance ); with draft; }
+}
+
+define behavior for ZI_Ztest004 alias Ztest004
+persistent table ZTEST004
+draft table ZTEST004_D
+lock dependent by _Ztest004All
+authorization dependent by _Ztest004All
+
+{
+  field ( mandatory : create )
+   Id;
+
+  field ( readonly )
+   SingletonID;
+
+  field ( readonly : update )
+   Id;
+
+  field ( notrigger )
+   SingletonID;
+
+
+  update( features : global );
+  delete( features : global );
+
+  factory action ( features : instance ) CopyZtest004 parameter ZD_CopyZtest004P [1];
+
+  mapping for ZTEST004
+  {
+    Id = ID;
+    Data_000 = DATA;
+  }
+
+  association _Ztest004All { with draft; }
+
+  validation ValidateTransportRequest on save ##NOT_ASSIGNED_TO_DETACT { create; update; delete; }
+}

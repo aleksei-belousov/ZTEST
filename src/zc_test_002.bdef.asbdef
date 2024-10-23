@@ -1,0 +1,11 @@
+projection;
+strict ( 2 );
+
+define behavior for ZC_TEST_002 alias Test
+{
+  use create;
+  use update;
+  use delete;
+
+  use action test;
+}

@@ -1,0 +1,45 @@
+@Metadata.layer: #CUSTOMER
+@UI: {
+  headerInfo: {
+    typeName: 'Ztest004', 
+    typeNamePlural: 'Ztest004s', 
+    title: {
+      type: #STANDARD, 
+      label: 'ZTEST004', 
+      value: 'Id'
+    }
+  }
+}
+annotate view ZI_Ztest004 with
+{
+  @UI.identification: [ {
+    position: 1 
+  } ]
+  @UI.lineItem: [ {
+    position: 1 
+  }, 
+  {
+    type: #FOR_ACTION, 
+    dataAction: 'CopyZtest004', 
+    label: 'Copy Selected Entry', 
+    invocationGrouping: #CHANGE_SET
+  } ]
+  @UI.facet: [ {
+    id: 'ZI_Ztest004', 
+    purpose: #STANDARD, 
+    type: #IDENTIFICATION_REFERENCE, 
+    label: 'ZTEST004', 
+    position: 1 
+  } ]
+  Id;
+  
+  @UI.identification: [ {
+    position: 2 , 
+    label: 'Data_000'
+  } ]
+  @UI.lineItem: [ {
+    position: 2 , 
+    label: 'Data_000'
+  } ]
+  Data_000;
+}
