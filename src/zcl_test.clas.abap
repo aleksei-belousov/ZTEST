@@ -22,6 +22,11 @@ CLASS zcl_test DEFINITION PUBLIC FINAL CREATE PUBLIC.
     METHODS c1_contract IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
     METHODS material_document_api IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
     METHODS material_document_eml IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
+    METHODS use_eml_crud_operations IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
+    METHODS use_eml_create IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
+    METHODS use_eml_read IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
+    METHODS use_eml_update IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
+    METHODS use_eml_delete IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -285,8 +290,8 @@ CLASS ZCL_TEST IMPLEMENTATION.
 *    string_functions3( out ).
 *    exact_calculations( out ).
 *    material_document_api( out ).
-    material_document_eml( out ).
-
+*    material_document_eml( out ).
+    use_eml_crud_operations( out ).
   ENDMETHOD. " main
 
 
@@ -1897,4 +1902,267 @@ STATUS = 'N'
     out->write( text-hau ).
 
   ENDMETHOD. " text_translations
+
+  METHOD use_eml_crud_operations.
+
+*    use_eml_create( out ).
+*    use_eml_read( out ).
+*    use_eml_update( out ).
+    use_eml_delete( out ).
+
+  ENDMETHOD. " use_eml_crud_operations
+
+  METHOD use_eml_create. " Create
+
+*   Create two (root) rows:
+
+    DATA it_simple_create TYPE TABLE FOR CREATE zi_simple_008\\Simple.
+
+    APPEND VALUE #(
+            %cid            = '1'
+            %is_draft       = '00'      " Saved (not draft)
+            Field1          = 'Value1'
+            Field2          = 'Value2'
+    ) TO it_simple_create.
+    APPEND VALUE #(
+            %cid            = '2'
+            %is_draft       = '00'      " Saved (not draft)
+            Field1          = 'Value3'
+            Field2          = 'Value4'
+    ) TO it_simple_create.
+
+*   Create rows
+    MODIFY ENTITIES OF zi_simple_008 " IN LOCAL MODE
+        ENTITY Simple
+        CREATE
+        FIELDS ( Field1 Field2 )
+        WITH it_simple_create
+        MAPPED DATA(mapped1)
+        FAILED DATA(failed1)
+        REPORTED DATA(reported1).
+
+    COMMIT ENTITIES.
+
+    IF ( sy-subrc = 0 ).
+      out->write( `Root created successfully.` ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+*   Get 1st (created) row
+    SELECT SINGLE * FROM zi_simple_008 WHERE ( SimpleID = '1' ) INTO @DATA(simple).
+
+*   Create two items in the 1st row:
+
+    DATA it_item_create TYPE TABLE FOR CREATE zi_simple_008\\Simple\_Item.
+
+    APPEND VALUE #(
+        %is_draft  = '00'               " Saved
+        SimpleUUID = simple-SimpleUUID  " Key
+        %target = VALUE #( (
+            %cid    = '1'
+            Field3  = 'Value5'
+            Field4  = 'Value6'
+        ) )
+    ) TO it_item_create.
+    APPEND VALUE #(
+        %is_draft  = '00'               " Saved
+        SimpleUUID = simple-SimpleUUID  " Key
+        %target = VALUE #( (
+            %cid    = '2'
+            Field3  = 'Value7'
+            Field4  = 'Value8'
+        ) )
+    ) TO it_item_create.
+
+*   Create items
+    MODIFY ENTITIES OF zi_simple_008 " IN LOCAL MODE
+        ENTITY Simple
+        CREATE BY \_Item
+        FIELDS ( Field3 Field4 )
+        WITH it_item_create
+        MAPPED DATA(mapped2)
+        FAILED DATA(failed2)
+        REPORTED DATA(reported2).
+
+    COMMIT ENTITIES.
+
+    IF ( sy-subrc = 0 ).
+      out->write( `Items created successfully.` ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+  ENDMETHOD. " use_eml_create
+
+  METHOD use_eml_read. " Read
+
+*   Get 1st row
+    SELECT SINGLE * FROM zi_simple_008 WHERE ( SimpleID = '1' ) INTO @DATA(simple).
+
+*   Read the 1st (root) row (with EML):
+    READ ENTITIES OF zi_simple_008 " IN LOCAL MODE
+        ENTITY Simple
+        ALL FIELDS WITH VALUE #( (
+            %is_draft   = '00'              " Saved
+            SimpleUUID  = simple-simpleUUID " Key
+        ) )
+        RESULT DATA(simples)
+        FAILED DATA(failed1)
+        REPORTED DATA(reported1).
+
+    IF ( sy-subrc = 0 ).
+      out->write( CONV string( LINES( simples ) ) && ` root read successfully.`  ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+*   Read all items from the 1st row:
+    READ ENTITIES OF zi_simple_008 " IN LOCAL MODE
+        ENTITY Simple BY \_Item
+        ALL FIELDS WITH VALUE #( (
+            %is_draft   = '00'              " Saved
+            SimpleUUID  = simple-SimpleUUID " Key
+        ) )
+        RESULT DATA(items)
+        FAILED DATA(failed2)
+        REPORTED DATA(reported2).
+
+    IF ( sy-subrc = 0 ).
+      out->write( CONV string( LINES( items ) ) && ` items read successfully.`  ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+  ENDMETHOD. " use_eml_read
+
+  METHOD use_eml_update. " Update
+
+*   Get the 1st row:
+    SELECT SINGLE * FROM zi_simple_008 WHERE ( SimpleID = '1' ) INTO @DATA(simple).
+
+*   Get the 1st item of the 1st row:
+    SELECT SINGLE * FROM zi_item_008 WHERE ( SimpleUUID = @simple-SimpleUUID ) AND ( ItemID = '1' ) INTO @DATA(item).
+
+*   Update the 1st (root) row:
+
+    DATA it_simple_update TYPE TABLE FOR UPDATE zi_simple_008\\Simple.
+
+    APPEND VALUE #(
+        %is_draft   = '00'              " Saved
+        SimpleUUID = simple-SimpleUUID  " Key
+        Field1 = 'Value8'
+        Field2 = 'Value9'
+    ) TO it_simple_update.
+
+    MODIFY ENTITIES OF zi_simple_008 " IN LOCAL MODE
+        ENTITY Simple
+        UPDATE FIELDS ( Field1 Field2 )
+        WITH it_simple_update
+        MAPPED DATA(mapped1)
+        FAILED DATA(failed1)
+        REPORTED DATA(reported1).
+
+    COMMIT ENTITIES.
+
+    IF ( sy-subrc = 0 ).
+      out->write( `Root updated successfully.` ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+*   Update the 1st items of the 1st row:
+
+    DATA it_item_update TYPE TABLE FOR UPDATE zi_simple_008\\Item.
+
+    APPEND VALUE #(
+        %is_draft = '00'            " Saved
+        ItemUUID  = item-ItemUUID   " Key
+        Field3  = 'Value10'
+        Field4  = 'Value11'
+    ) TO it_item_update.
+
+    MODIFY ENTITIES OF zi_simple_008 " IN LOCAL MODE
+        ENTITY Item
+        UPDATE FIELDS ( Field3 Field4 )
+        WITH it_item_update
+        MAPPED DATA(mapped2)
+        FAILED DATA(failed2)
+        REPORTED DATA(reported2).
+
+    COMMIT ENTITIES.
+
+    IF ( sy-subrc = 0 ).
+      out->write( `Items updated successfully.` ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+  ENDMETHOD. " use_eml_update
+
+  METHOD use_eml_delete. " Delete
+
+*   Get the 1st row:
+    SELECT SINGLE * FROM zi_simple_008 WHERE ( SimpleID = '1' ) INTO @DATA(simple).
+
+*   Get 1st and 2nd items from the 2st row:
+    SELECT SINGLE * FROM zi_simple_008 WHERE ( SimpleID = '2' ) INTO @DATA(simple2).
+    SELECT SINGLE * FROM zi_item_008 WHERE ( SimpleUUID = @simple2-SimpleUUID ) AND ( ItemID = '1' ) INTO @DATA(item1).
+    SELECT SINGLE * FROM zi_item_008 WHERE ( SimpleUUID = @simple2-SimpleUUID ) AND ( ItemID = '2' ) INTO @DATA(item2).
+
+*   Delete the 1st (root) row:
+
+    DATA it_simple_delete TYPE TABLE FOR DELETE zi_simple_008\\Simple.
+
+    APPEND VALUE #(
+        %is_draft   = '00'              " Saved
+        SimpleUUID  = simple-SimpleUUID " Key
+    ) TO it_simple_delete.
+
+    MODIFY ENTITIES OF zi_simple_008 " IN LOCAL MODE
+      ENTITY Simple
+      DELETE FROM it_simple_delete
+      MAPPED DATA(mapped1)
+      FAILED DATA(failed1)
+      REPORTED DATA(reported1).
+
+    COMMIT ENTITIES.
+
+    IF ( sy-subrc = 0 ).
+      out->write( `Root deleted successfully.` ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+*   Delete two items from 2nd row:
+
+    DATA it_item_delete TYPE TABLE FOR DELETE zi_simple_008\\Item.
+
+    APPEND VALUE #(
+        %is_draft   = '00'              " Saved
+        ItemUUID    = item1-ItemUUID    " Key
+    ) TO it_item_delete.
+    APPEND VALUE #(
+        %is_draft   = '00'              " Saved
+        ItemUUID    = item2-ItemUUID    " Key
+    ) TO it_item_delete.
+
+*   Delete items
+    MODIFY ENTITIES OF zi_simple_008 " IN LOCAL MODE
+      ENTITY Item
+      DELETE FROM it_item_delete
+      FAILED DATA(failed2)
+      MAPPED DATA(mapped2)
+      REPORTED DATA(reported2).
+
+    COMMIT ENTITIES.
+
+    IF ( sy-subrc = 0 ).
+      out->write( `Items deleted successfully.` ).
+    ELSE.
+      out->write( `An issue occurred.` ).
+    ENDIF.
+
+  ENDMETHOD. " use_eml_delete
+
 ENDCLASS.
